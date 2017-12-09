@@ -1,3 +1,6 @@
+/* +++Date last modified: 05-Jul-1997 */
+/* Updated comments, 05-Aug-2013 */
+
 /*
 
 SUNRISET.C - computes Sun rise/set times, start/end of twilight, and
@@ -21,7 +24,7 @@ Released to the public domain by Paul Schlyter, December 1992
 /* A macro to compute the number of days elapsed since 2000 Jan 0.0 */
 /* (which is equal to 1999 Dec 31, 0h UT)                           */
 
-#define days_since_2000_Jan_0(y,m,d)					\
+#define days_since_2000_Jan_0(y,m,d) \
     (367L*(y)-((7*((y)+(((m)+9)/12)))/4)+((275*(m))/9)+(d)-730530L)
 
 /* Some conversion factors between radians and degrees */
@@ -44,6 +47,7 @@ Released to the public domain by Paul Schlyter, December 1992
 #define acosd(x)    (RADEG*acos(x))
 #define atan2d(y,x) (RADEG*atan2(y,x))
 
+
 /* Following are some macros around the "workhorse" function __daylen__ */
 /* They mainly fill in the desired values for the reference altitude    */
 /* below the horizon, and also selects whether this altitude should     */
@@ -52,12 +56,10 @@ Released to the public domain by Paul Schlyter, December 1992
 
 /* This macro computes the length of the day, from sunrise to sunset. */
 /* Sunrise/set is considered to occur when the Sun's upper limb is    */
-/* 50 arc minutes below the horizon (this accounts for the refraction */
+/* 35 arc minutes below the horizon (this accounts for the refraction */
 /* of the Earth's atmosphere).                                        */
-/* The original version of the program used the value of 35 arc mins, */
-/* which is the accepted value in Sweden.                             */
 #define day_length(year,month,day,lon,lat)  \
-        __daylen__( year, month, day, lon, lat, -50.0/60.0, 1 )
+        __daylen__( year, month, day, lon, lat, -35.0/60.0, 1 )
 
 /* This macro computes the length of the day, including civil twilight. */
 /* Civil twilight starts/ends when the Sun's center is 6 degrees below  */
@@ -254,7 +256,7 @@ int __sunriset__( int year, int month, int day, double lon, double lat,
 /*        *rise = where to store the rise time                        */
 /*        *set  = where to store the set  time                        */
 /*                Both times are relative to the specified altitude,  */
-/*                and thus this function can be used to comupte       */
+/*                and thus this function can be used to compute       */
 /*                various twilight times, as well as rise/set times   */
 /* Return value:  0 = sun rises/sets this day, times stored at        */
 /*                    *trise and *tset.                               */
@@ -282,16 +284,16 @@ int __sunriset__( int year, int month, int day, double lon, double lat,
       /* Compute d of 12h local mean solar time */
       d = days_since_2000_Jan_0(year,month,day) + 0.5 - lon/360.0;
 
-      /* Compute local sideral time of this moment */
+      /* Compute the local sidereal time of this moment */
       sidtime = revolution( GMST0(d) + 180.0 + lon );
 
-      /* Compute Sun's RA + Decl at this moment */
+      /* Compute Sun's RA, Decl and distance at this moment */
       sun_RA_dec( d, &sRA, &sdec, &sr );
 
       /* Compute time when Sun is at south - in hours UT */
       tsouth = 12.0 - rev180(sidtime - sRA)/15.0;
 
-      /* Compute the Sun's apparent radius, degrees */
+      /* Compute the Sun's apparent radius in degrees */
       sradius = 0.2666 / sr;
 
       /* Do correction to upper limb, if necessary */
@@ -299,7 +301,7 @@ int __sunriset__( int year, int month, int day, double lon, double lat,
             altit -= sradius;
 
       /* Compute the diurnal arc that the Sun traverses to reach */
-      /* the specified altitide altit: */
+      /* the specified altitude altit: */
       {
             double cost;
             cost = ( sind(altit) - sind(lat) * sind(sdec) ) /
@@ -357,7 +359,7 @@ double __daylen__( int year, int month, int day, double lon, double lat,
       /* Compute obliquity of ecliptic (inclination of Earth's axis) */
       obl_ecl = 23.4393 - 3.563E-7 * d;
 
-      /* Compute Sun's position */
+      /* Compute Sun's ecliptic longitude and distance */
       sunpos( d, &slon, &sr );
 
       /* Compute sine and cosine of Sun's declination */
@@ -372,7 +374,7 @@ double __daylen__( int year, int month, int day, double lon, double lat,
             altit -= sradius;
 
       /* Compute the diurnal arc that the Sun traverses to reach */
-      /* the specified altitide altit: */
+      /* the specified altitude altit: */
       {
             double cost;
             cost = ( sind(altit) - sind(lat) * sin_sdecl ) /
@@ -412,7 +414,7 @@ void sunpos( double d, double *lon, double *r )
 
       /* Compute true longitude and radius vector */
       E = M + e * RADEG * sind(M) * ( 1.0 + e * cosd(M) );
-      x = cosd(E) - e;
+            x = cosd(E) - e;
       y = sqrt( 1.0 - e*e ) * sind(E);
       *r = sqrt( x*x + y*y );              /* Solar distance */
       v = atan2d( y, x );                  /* True anomaly */
@@ -422,31 +424,32 @@ void sunpos( double d, double *lon, double *r )
 }
 
 void sun_RA_dec( double d, double *RA, double *dec, double *r )
+/******************************************************/
+/* Computes the Sun's equatorial coordinates RA, Decl */
+/* and also its distance, at an instant given in d,   */
+/* the number of days since 2000 Jan 0.0.             */
+/******************************************************/
 {
-  double lon, obl_ecl;
-  double xs, ys, zs;
-  double xe, ye, ze;
-  
-  /* Compute Sun's ecliptical coordinates */
-  sunpos( d, &lon, r );
-  
-  /* Compute ecliptic rectangular coordinates */
-  xs = *r * cosd(lon);
-  ys = *r * sind(lon);
-  zs = 0; /* because the Sun is always in the ecliptic plane! */
+      double lon, obl_ecl, x, y, z;
 
-  /* Compute obliquity of ecliptic (inclination of Earth's axis) */
-  obl_ecl = 23.4393 - 3.563E-7 * d;
-  
-  /* Convert to equatorial rectangular coordinates - x is unchanged */
-  xe = xs;
-  ye = ys * cosd(obl_ecl);
-  ze = ys * sind(obl_ecl);
-  
-  /* Convert to spherical coordinates */
-  *RA = atan2d( ye, xe );
-  *dec = atan2d( ze, sqrt(xe*xe + ye*ye) );
-      
+      /* Compute Sun's ecliptical coordinates */
+      sunpos( d, &lon, r );
+
+      /* Compute ecliptic rectangular coordinates (z=0) */
+      x = *r * cosd(lon);
+      y = *r * sind(lon);
+
+      /* Compute obliquity of ecliptic (inclination of Earth's axis) */
+      obl_ecl = 23.4393 - 3.563E-7 * d;
+
+      /* Convert to equatorial rectangular coordinates - x is unchanged */
+      z = y * sind(obl_ecl);
+      y = y * cosd(obl_ecl);
+
+      /* Convert to spherical coordinates */
+      *RA = atan2d( y, x );
+      *dec = atan2d( z, sqrt(x*x + y*y) );
+
 }  /* sun_RA_dec */
 
 
@@ -468,7 +471,7 @@ double revolution( double x )
 
 double rev180( double x )
 /*********************************************/
-/* Reduce angle to within -180..+180 degrees */
+/* Reduce angle to within +180..+180 degrees */
 /*********************************************/
 {
       return( x - 360.0 * floor( x * INV360 + 0.5 ) );
@@ -476,10 +479,10 @@ double rev180( double x )
 
 
 /*******************************************************************/
-/* This function computes GMST0, the Greenwhich Mean Sidereal Time */
+/* This function computes GMST0, the Greenwich Mean Sidereal Time  */
 /* at 0h UT (i.e. the sidereal time at the Greenwhich meridian at  */
 /* 0h UT).  GMST is then the sidereal time at Greenwich at any     */
-/* time of the day.  I've generelized GMST0 as well, and define it */
+/* time of the day.  I've generalized GMST0 as well, and define it */
 /* as:  GMST0 = GMST - UT  --  this allows GMST0 to be computed at */
 /* other times than 0h UT as well.  While this sounds somewhat     */
 /* contradictory, it is very practical:  instead of computing      */
