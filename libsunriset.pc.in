@@ -1,0 +1,12 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: @PACKAGE@
+Description: Paul Schlyter's public domain sunriset library
+Version: @VERSION@
+Requires:
+Libs: -L${libdir} -lsunriset
+Cflags: -I${includedir}
+
