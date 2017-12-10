@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 		month = 1 + tm->tm_mon;
 		day = tm->tm_mday;
 
-		printf("latitude %f longitude %f date %d-%02d-%02d\n",
-		       lat, lon, year, month, day);
+		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
+		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
 	}
 	printf("Times are in UT, approximately == UTC\n");
 
