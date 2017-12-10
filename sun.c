@@ -11,15 +11,18 @@
 static int  verbose = 1;
 extern char *__progname;
 
+static void convert(double ut, int *h, int *m)
+{
+	*h = (int)floor(ut);
+	*m = (int)(60 * (ut - floor(ut)));
+}
 
 static char *ut2str(double ut)
 {
 	int h, m;
 	static char buf[10];
 
-	h = (int)floor(ut);
-	m = (int)(60 * (ut - floor(ut)));
-
+	convert(ut, &h, &m);
 	snprintf(buf, sizeof(buf), "%02d:%02d", h, m);
 
 	return buf;
@@ -29,10 +32,8 @@ static void print(const char *fmt, double up, double dn)
 {
 	int uh, um, dh, dm;
 
-	uh = (int)floor(up);
-	um = (int)(60 * (up - floor(up)));
-	dh = (int)floor(dn);
-	dm = (int)(60 * (dn - floor(dn)));
+	convert(up, &uh, &um);
+	convert(dn, &dh, &dm);
 
 	PRINTF(fmt, uh, um, dh, dm);
 }
