@@ -480,7 +480,7 @@ double rev180( double x )
 
 /*******************************************************************/
 /* This function computes GMST0, the Greenwich Mean Sidereal Time  */
-/* at 0h UT (i.e. the sidereal time at the Greenwhich meridian at  */
+/* at 0h UT (i.e. the sidereal time at the Greenwich meridian at   */
 /* 0h UT).  GMST is then the sidereal time at Greenwich at any     */
 /* time of the day.  I've generalized GMST0 as well, and define it */
 /* as:  GMST0 = GMST - UT  --  this allows GMST0 to be computed at */
