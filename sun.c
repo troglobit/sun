@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
 	char buf[80];
 
 	if (argc < 3) {
-		printf("Longitude (+ is east) and latitude (+ is north) : ");
+		printf("Latitude (+ is north) and longitude (+ is east) : ");
 		fgets(buf, 80, stdin);
-		sscanf(buf, "%lf %lf", &lon, &lat);
+		sscanf(buf, "%lf %lf", &lat, &lon);
 
 		printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
 		fgets(buf, 80, stdin);
@@ -26,8 +26,8 @@ int main(int argc, char *argv[])
 		time_t now;
 		struct tm *tm;
 
-		lon = atof(argv[1]);
-		lat = atof(argv[2]);
+		lat = atof(argv[1]);
+		lon = atof(argv[2]);
 
 		now = time(NULL);
 		tm = localtime(&now);
@@ -35,8 +35,8 @@ int main(int argc, char *argv[])
 		month = tm->tm_mon;
 		day = tm->tm_mday;
 
-		printf("longitude %f latitude %f date %d-%02d-%02d\n",
-		       lon, lat, year, month, day);
+		printf("latitude %f longitude %f date %d-%02d-%02d\n",
+		       lat, lon, year, month, day);
 	}
 	printf("Times are in UT, approximately == UTC\n");
 
