@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 		now = time(NULL);
 		tm = localtime(&now);
 		year = 1900 + tm->tm_year;
-		month = tm->tm_mon;
+		month = 1 + tm->tm_mon;
 		day = tm->tm_mday;
 
 		printf("latitude %f longitude %f date %d-%02d-%02d\n",
