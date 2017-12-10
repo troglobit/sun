@@ -12,5 +12,11 @@ AC_PROG_INSTALL
 # Checks for libraries.
 LT_INIT
 
+# Optional features
+AC_ARG_ENABLE(library,
+        AS_HELP_STRING([--enable-library], [Build sunriset library]),,[enable_library=no])
+
+AM_CONDITIONAL(ENABLE_LIBRARY, [test "x$enable_library" = "xyes"])
+
 # Generate all files
 AC_OUTPUT

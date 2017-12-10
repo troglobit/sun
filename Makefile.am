@@ -1,6 +1,7 @@
 doc_DATA                = README.md LICENSE
 EXTRA_DIST              = $(doc_DATA)
 
+if ENABLE_LIBRARY
 pkgconfigdir            = $(libdir)/pkgconfig
 pkgconfig_DATA          = libsunriset.pc
 
@@ -14,11 +15,19 @@ libsunriset_la_CFLAGS   = -std=gnu99
 libsunriset_la_CFLAGS  += -W -Wall -Wextra -Wundef -Wunused -Wstrict-prototypes
 libsunriset_la_CFLAGS  += -Werror-implicit-function-declaration -Wshadow -Wcast-qual
 libsunriset_la_LDFLAGS  = $(AM_LDFLAGS) -version-info 0:0:0
+endif
 
 bin_PROGRAMS            = sun
 sun_SOURCES             = sun.c
+sun_CFLAGS              = -W -Wall -Wextra
+sun_LDADD               = -lm
+if ENABLE_LIBRARY
 sun_LDFLAGS             = -static
-sun_LDADD               = libsunriset.la -lm
+sun_LDADD              += libsunriset.la
+else
+sun_CPPFLAGS            = -DSUNRISET_LIB
+sun_SOURCES            += sunriset.c sunriset.h
+endif
 
 ## Generate MD5 checksum file
 MD5 = md5sum
