@@ -197,10 +197,10 @@ static int interactive(double *lat, double *lon, int *year, int *month, int *day
 
 static int usage(int code)
 {
-	printf("Usage: %s [-hip] [+/-latitude] [+/-longitude]\n"
+	printf("Usage: %s [-hip] [+/-latitude +/-longitude]\n"
 	       "\n"
 	       "Options:\n"
-	       "  -a  Show all relevant times\n"
+	       "  -a  Show all relevant times and exit\n"
 	       "  -h  This help text\n"
 	       "  -i  Interactive mode\n"
 	       "  -r  Sunrise mode\n"
@@ -215,7 +215,7 @@ int main(int argc, char *argv[])
 {
 	int c, op, ok = 0;
 	int year, month, day;
-	double lon, lat;
+	double lon = 0.0, lat;
 
 	while ((c = getopt(argc, argv, "ahirsvw")) != EOF) {
 		switch (c) {
@@ -255,9 +255,11 @@ int main(int argc, char *argv[])
 	now = time(NULL);
 	tm = localtime(&now);
 
-	if (!ok && optind + 1 < argc) {
-		lat = atof(argv[optind++]);
-		lon = atof(argv[optind]);
+	if (!ok) {
+		if (optind < argc)
+			lat = atof(argv[optind++]);
+		if (optind < argc)
+			lon = atof(argv[optind]);
 
 		year = 1900 + tm->tm_year;
 		month = 1 + tm->tm_mon;
@@ -265,7 +267,8 @@ int main(int argc, char *argv[])
 
 //		PRINTF("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
-		ok = 1;
+		if (lon != 0.0)
+			ok = 1;
 	} else {
 		tm->tm_year = year  - 1900;
 		tm->tm_mon  = month - 1;
