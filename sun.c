@@ -1,11 +1,15 @@
 #include <getopt.h>
 #include <math.h>
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
 #include "sunriset.h"
+
+#define TIMEZONE "/etc/timezone"
+#define ZONETAB  "/usr/share/zoneinfo/zone.tab"
 
 #define PRINTF(fmt, args...) if (verbose) printf(fmt, ##args)
 
@@ -180,6 +184,61 @@ static int all(double lat, double lon, int year, int month, int day)
 	return 0;
 }
 
+static void chomp(char *str)
+{
+	size_t len;
+
+	if (!str)
+		return;
+
+	len = strlen(str) - 1;
+	while (len && str[len] == '\n')
+		str[len--] = 0;
+}
+
+static int probe(double *lat, double *lon)
+{
+	int found = 0;
+	FILE *fp;
+	char tz[42], buf[80];
+
+	fp = fopen(TIMEZONE, "r");
+	if (!fp)
+		return 0;
+
+	fgets(tz, sizeof(tz), fp);
+	fclose(fp);
+	chomp(tz);
+//	printf("tz: '%s'\n", tz);
+
+	fp = fopen(ZONETAB, "r");
+	if (!fp)
+		return 0;
+
+	while ((fgets(buf, sizeof(buf), fp))) {
+		char *ptr;
+
+		ptr = strstr(buf, tz);
+		if (!ptr)
+			continue;
+		*ptr = 0;
+		ptr = buf;
+		while (*ptr != ' ' && *ptr != '	')
+			ptr++;
+
+		if (sscanf(ptr, "%lf%lf", lat, lon) == 2) {
+			*lat /= 100.0;
+			*lon /= 100.0;
+			found = 1;
+		}
+//		printf("buf: '%s', lat: %lf, lon: %lf\n", ptr, *lat, *lon);
+		break;
+	}
+	fclose(fp);
+
+	return found;
+}
+
 static int interactive(double *lat, double *lon, int *year, int *month, int *day)
 {
 	char buf[80];
@@ -269,6 +328,9 @@ int main(int argc, char *argv[])
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
 		if (lon != 0.0)
 			ok = 1;
+
+		if (!ok)
+			ok = probe(&lat, &lon);
 	} else {
 		tm->tm_year = year  - 1900;
 		tm->tm_mon  = month - 1;
