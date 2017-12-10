@@ -34,9 +34,9 @@ int main(void)
       int    rs, civ, naut, astr;
       char buf[80];
 
-      printf( "Longitude (+ is east) and latitude (+ is north) : " );
+      printf( "Latitude (+ is north) and longitude (+ is east) : " );
       fgets(buf, 80, stdin);
-      sscanf(buf, "%lf %lf", &lon, &lat );
+      sscanf(buf, "%lf %lf", &lat, &lon );
 
       for(;;)
       {
