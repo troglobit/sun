@@ -30,40 +30,12 @@ static void print(const char *fmt, double up, double dn)
 	printf(fmt, uh, um, dh, dm);
 }
 
-int main(int argc, char *argv[])
+static int all(double lat, double lon, int year, int month, int day)
 {
-	int year, month, day;
-	double lon, lat;
 	double daylen, civlen, nautlen, astrlen;
 	double rise, set, civ_start, civ_end, naut_start, naut_end;
 	double astr_start, astr_end;
 	int rs, civ, naut, astr;
-	char buf[80];
-
-	if (argc < 3) {
-		printf("Latitude (+ is north) and longitude (+ is east) : ");
-		fgets(buf, 80, stdin);
-		sscanf(buf, "%lf %lf", &lat, &lon);
-
-		printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
-		fgets(buf, 80, stdin);
-		sscanf(buf, "%d %d %d", &year, &month, &day);
-	} else {
-		time_t now;
-		struct tm *tm;
-
-		lat = atof(argv[1]);
-		lon = atof(argv[2]);
-
-		now = time(NULL);
-		tm = localtime(&now);
-		year = 1900 + tm->tm_year;
-		month = 1 + tm->tm_mon;
-		day = tm->tm_mday;
-
-		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
-		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
-	}
 
 	daylen = day_length(year, month, day, lon, lat);
 	civlen = day_civil_twilight_length(year, month, day, lon, lat);
@@ -145,6 +117,41 @@ int main(int argc, char *argv[])
 	}
 
 	return 0;
+}
+
+int main(int argc, char *argv[])
+{
+	int year, month, day;
+	double lon, lat;
+
+	if (argc < 3) {
+		char buf[80];
+
+		printf("Latitude (+ is north) and longitude (+ is east) : ");
+		fgets(buf, 80, stdin);
+		sscanf(buf, "%lf %lf", &lat, &lon);
+
+		printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
+		fgets(buf, 80, stdin);
+		sscanf(buf, "%d %d %d", &year, &month, &day);
+	} else {
+		time_t now;
+		struct tm *tm;
+
+		lat = atof(argv[1]);
+		lon = atof(argv[2]);
+
+		now = time(NULL);
+		tm = localtime(&now);
+		year = 1900 + tm->tm_year;
+		month = 1 + tm->tm_mon;
+		day = tm->tm_mday;
+
+		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
+		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
+	}
+
+	return all(lat, lon, year, month, day);
 }
 
 /**
