@@ -34,14 +34,31 @@ static void print(const char *fmt, double up, double dn)
 	printf(fmt, uh, um, dh, dm);
 }
 
-static int riset(double lat, double lon, int year, int month, int day)
+static int riset(int mode, double lat, double lon, int year, int month, int day)
 {
 	double rise, set;
 
 	sun_rise_set(year, month, day, lon, lat, &rise, &set);
-	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
+	if (mode)
+		printf("Sun rises %s", ut2str(rise));
+	if (!mode)
+		printf("Sun sets %s", ut2str(set));
+	if (mode == -1)
+		printf(", sets %s", ut2str(set));
+	printf(" UTC\n");
+//	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
 
 	return 0;
+}
+
+static int sunrise(double lat, double lon, int year, int month, int day)
+{
+	return riset(1, lat, lon, year, month, day);
+}
+
+static int sunset(double lat, double lon, int year, int month, int day)
+{
+	return riset(0, lat, lon, year, month, day);
 }
 
 static int all(double lat, double lon, int year, int month, int day)
@@ -151,9 +168,11 @@ static int usage(int code)
 	printf("Usage: %s [-hip] [+/-latitude] [+/-longitude]\n"
 	       "\n"
 	       "Options:\n"
-		"  -h  This help text\n"
-		"  -i  Interactive mode\n"
-		"  -s  Show summary of all relevant times\n"
+	       "  -a  Show all relevant times\n"
+	       "  -h  This help text\n"
+	       "  -i  Interactive mode\n"
+	       "  -r  Sunrise mode\n"
+	       "  -s  Sunset mode\n"
 	       "\n", __progname);
 
 	return code;
@@ -165,7 +184,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon, lat;
 
-	while ((c = getopt(argc, argv, "his")) != EOF) {
+	while ((c = getopt(argc, argv, "ahirs")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -174,8 +193,10 @@ int main(int argc, char *argv[])
 			interactive(&lat, &lon, &year, &month, &day);
 			break;
 
+		case 'a':
+		case 'r':
 		case 's':
-			op = 's';
+			op = c;
 			break;
 
 		case ':':	/* missing param for option */
@@ -207,14 +228,20 @@ int main(int argc, char *argv[])
 		return usage(1);
 
 	switch (op) {
-	case 's':
+	case 'a':
 		return all(lat, lon, year, month, day);
+
+	case 'r':
+		return sunrise(lat, lon, year, month, day);
+
+	case 's':
+		return sunset(lat, lon, year, month, day);
 
 	default:
 		break;
 	}
 
-	return riset(lat, lon, year, month, day);
+	return riset(-1, lat, lon, year, month, day);
 }
 
 /**
