@@ -1,9 +1,13 @@
+#include <getopt.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "sunriset.h"
+
+extern char *__progname;
+
 
 static char *ut2str(double ut)
 {
@@ -28,6 +32,16 @@ static void print(const char *fmt, double up, double dn)
 	dm = (int)(60 * (dn - floor(dn)));
 
 	printf(fmt, uh, um, dh, dm);
+}
+
+static int riset(double lat, double lon, int year, int month, int day)
+{
+	double rise, set;
+
+	sun_rise_set(year, month, day, lon, lat, &rise, &set);
+	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
+
+	return 0;
 }
 
 static int all(double lat, double lon, int year, int month, int day)
@@ -119,27 +133,64 @@ static int all(double lat, double lon, int year, int month, int day)
 	return 0;
 }
 
+static void interactive(double *lat, double *lon, int *year, int *month, int *day)
+{
+	char buf[80];
+
+	printf("Latitude (+ is north) and longitude (+ is east) : ");
+	fgets(buf, sizeof(buf), stdin);
+	sscanf(buf, "%lf %lf", lat, lon);
+
+	printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
+	fgets(buf, 80, stdin);
+	sscanf(buf, "%d %d %d", year, month, day);
+}
+
+static int usage(int code)
+{
+	printf("Usage: %s [-hip] [+/-latitude] [+/-longitude]\n"
+	       "\n"
+	       "Options:\n"
+		"  -h  This help text\n"
+		"  -i  Interactive mode\n"
+		"  -s  Show summary of all relevant times\n"
+	       "\n", __progname);
+
+	return code;
+}
+
 int main(int argc, char *argv[])
 {
+	int c, op, ok = 0;
 	int year, month, day;
 	double lon, lat;
 
-	if (argc < 3) {
-		char buf[80];
+	while ((c = getopt(argc, argv, "his")) != EOF) {
+		switch (c) {
+		case 'h':
+			return usage(0);
 
-		printf("Latitude (+ is north) and longitude (+ is east) : ");
-		fgets(buf, 80, stdin);
-		sscanf(buf, "%lf %lf", &lat, &lon);
+		case 'i':
+			interactive(&lat, &lon, &year, &month, &day);
+			break;
 
-		printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
-		fgets(buf, 80, stdin);
-		sscanf(buf, "%d %d %d", &year, &month, &day);
-	} else {
+		case 's':
+			op = 's';
+			break;
+
+		case ':':	/* missing param for option */
+		case '?':	/* unknown option */
+		default:
+			return usage(1);
+		}
+	}
+
+	if (optind + 1 < argc) {
 		time_t now;
 		struct tm *tm;
 
-		lat = atof(argv[1]);
-		lon = atof(argv[2]);
+		lat = atof(argv[optind++]);
+		lon = atof(argv[optind]);
 
 		now = time(NULL);
 		tm = localtime(&now);
@@ -147,11 +198,23 @@ int main(int argc, char *argv[])
 		month = 1 + tm->tm_mon;
 		day = tm->tm_mday;
 
-		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
-		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
+//		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
+//		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
+		ok = 1;
 	}
 
-	return all(lat, lon, year, month, day);
+	if (!ok)
+		return usage(1);
+
+	switch (op) {
+	case 's':
+		return all(lat, lon, year, month, day);
+
+	default:
+		break;
+	}
+
+	return riset(lat, lon, year, month, day);
 }
 
 /**
