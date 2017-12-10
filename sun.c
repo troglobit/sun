@@ -3,12 +3,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "sunriset.h"
 
 #define PRINTF(fmt, args...) if (verbose) printf(fmt, ##args)
 
+static time_t now;
+static struct tm *tm;
+
 static int  verbose = 1;
+static int  do_wait = 0;
 extern char *__progname;
 
 static void convert(double ut, int *h, int *m)
@@ -51,6 +56,27 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 		PRINTF(", sets %s", ut2str(set));
 	PRINTF(" UTC\n");
 //	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
+
+	if (do_wait > 0) {
+		int h, m;
+		time_t then, sec;
+
+		if (mode)
+			convert(rise, &h, &m);
+		else
+			convert(set, &h, &m);
+
+		tm->tm_hour = h;
+		tm->tm_min  = m;
+		then = mktime(tm);
+
+		if (then < now)
+			then += 60 * 60 * 24;
+
+		sec = then - now;
+		PRINTF("Sleeping %ld sec ...\n", sec);
+		sleep(sec);
+	}
 
 	return 0;
 }
@@ -179,6 +205,7 @@ static int usage(int code)
 	       "  -i  Interactive mode\n"
 	       "  -r  Sunrise mode\n"
 	       "  -s  Sunset mode\n"
+	       "  -w  Wait until sunset or sunrise\n"
 	       "\n", __progname);
 
 	return code;
@@ -190,7 +217,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon, lat;
 
-	while ((c = getopt(argc, argv, "ahirsv")) != EOF) {
+	while ((c = getopt(argc, argv, "ahirsvw")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -202,6 +229,7 @@ int main(int argc, char *argv[])
 
 		case 'a':
 			verbose++;
+			do_wait--;
 			/* fallthrough */
 		case 'r':
 		case 's':
@@ -212,6 +240,11 @@ int main(int argc, char *argv[])
 			verbose++;
 			break;
 
+		case 'w':
+			verbose--;
+			do_wait++;
+			break;
+
 		case ':':	/* missing param for option */
 		case '?':	/* unknown option */
 		default:
@@ -219,15 +252,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (optind + 1 < argc) {
-		time_t now;
-		struct tm *tm;
+	now = time(NULL);
+	tm = localtime(&now);
 
+	if (!ok && optind + 1 < argc) {
 		lat = atof(argv[optind++]);
 		lon = atof(argv[optind]);
 
-		now = time(NULL);
-		tm = localtime(&now);
 		year = 1900 + tm->tm_year;
 		month = 1 + tm->tm_mon;
 		day = tm->tm_mday;
@@ -235,6 +266,10 @@ int main(int argc, char *argv[])
 //		PRINTF("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
 		ok = 1;
+	} else {
+		tm->tm_year = year  - 1900;
+		tm->tm_mon  = month - 1;
+		tm->tm_mday = day;
 	}
 
 	if (!ok)
