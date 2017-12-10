@@ -23,8 +23,8 @@ Released to the public domain by Paul Schlyter, December 1992
 
 
 /* A small test program */
-
-main()
+#ifndef SUNRISET_LIB
+int main(void)
 {
       int year,month,day;
       double lon, lat;
@@ -130,7 +130,7 @@ main()
       return 0;
       }
 }
-
+#endif /* SUNRISET_LIB */
 
 /* The "workhorse" function for sun rise/set times */
 
