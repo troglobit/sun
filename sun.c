@@ -200,15 +200,21 @@ static int probe(double *lat, double *lon)
 {
 	int found = 0;
 	FILE *fp;
-	char tz[42], buf[80];
+	char *ptr, tz[42], buf[80];
 
-	fp = fopen(TIMEZONE, "r");
-	if (!fp)
-		return 0;
+	ptr = getenv("TZ");
+	if (!ptr) {
+		fp = fopen(TIMEZONE, "r");
+		if (!fp)
+			return 0;
 
-	fgets(tz, sizeof(tz), fp);
-	fclose(fp);
-	chomp(tz);
+		fgets(tz, sizeof(tz), fp);
+		chomp(tz);
+		fclose(fp);
+	} else {
+		strncpy(tz, ptr, sizeof(tz));
+		tz[sizeof(tz) - 1] = 0;
+	}
 //	printf("tz: '%s'\n", tz);
 
 	fp = fopen(ZONETAB, "r");
@@ -216,8 +222,6 @@ static int probe(double *lat, double *lon)
 		return 0;
 
 	while ((fgets(buf, sizeof(buf), fp))) {
-		char *ptr;
-
 		ptr = strstr(buf, tz);
 		if (!ptr)
 			continue;
