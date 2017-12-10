@@ -18,8 +18,12 @@ latitude and longitude.
 On my system, in mid December here in Sweden, the result is:
 
 ```
+$ cat /etc/timezone
+Europe/Stockholm
 $ sun
 Sun rises 07:31, sets 13:49 UTC
+$ TZ="Africa/Luanda" sun
+Sun rises 04:42, sets 17:18 UTC
 ```
 
 See the built-in usage text for more help: `sun -h`
