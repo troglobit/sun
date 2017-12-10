@@ -6,6 +6,9 @@
 
 #include "sunriset.h"
 
+#define PRINTF(fmt, args...) if (verbose) printf(fmt, ##args)
+
+static int  verbose = 1;
 extern char *__progname;
 
 
@@ -31,7 +34,7 @@ static void print(const char *fmt, double up, double dn)
 	dh = (int)floor(dn);
 	dm = (int)(60 * (dn - floor(dn)));
 
-	printf(fmt, uh, um, dh, dm);
+	PRINTF(fmt, uh, um, dh, dm);
 }
 
 static int riset(int mode, double lat, double lon, int year, int month, int day)
@@ -40,12 +43,12 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 
 	sun_rise_set(year, month, day, lon, lat, &rise, &set);
 	if (mode)
-		printf("Sun rises %s", ut2str(rise));
+		PRINTF("Sun rises %s", ut2str(rise));
 	if (!mode)
-		printf("Sun sets %s", ut2str(set));
+		PRINTF("Sun sets %s", ut2str(set));
 	if (mode == -1)
-		printf(", sets %s", ut2str(set));
-	printf(" UTC\n");
+		PRINTF(", sets %s", ut2str(set));
+	PRINTF(" UTC\n");
 //	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
 
 	return 0;
@@ -73,20 +76,20 @@ static int all(double lat, double lon, int year, int month, int day)
 	nautlen = day_nautical_twilight_length(year, month, day, lon, lat);
 	astrlen = day_astronomical_twilight_length(year, month, day, lon, lat);
 
-	printf("Day length:                 %5.2f hours\n", daylen);
-	printf("With civil twilight         %5.2f hours\n", civlen);
-	printf("With nautical twilight      %5.2f hours\n", nautlen);
-	printf("With astronomical twilight  %5.2f hours\n", astrlen);
-	printf("Length of twilight: civil   %5.2f hours\n", (civlen - daylen) / 2.0);
-	printf("                  nautical  %5.2f hours\n", (nautlen - daylen) / 2.0);
-	printf("              astronomical  %5.2f hours\n", (astrlen - daylen) / 2.0);
+	PRINTF("Day length:                 %5.2f hours\n", daylen);
+	PRINTF("With civil twilight         %5.2f hours\n", civlen);
+	PRINTF("With nautical twilight      %5.2f hours\n", nautlen);
+	PRINTF("With astronomical twilight  %5.2f hours\n", astrlen);
+	PRINTF("Length of twilight: civil   %5.2f hours\n", (civlen - daylen) / 2.0);
+	PRINTF("                  nautical  %5.2f hours\n", (nautlen - daylen) / 2.0);
+	PRINTF("              astronomical  %5.2f hours\n", (astrlen - daylen) / 2.0);
 
 	rs = sun_rise_set(year, month, day, lon, lat, &rise, &set);
 	civ = civil_twilight(year, month, day, lon, lat, &civ_start, &civ_end);
 	naut = nautical_twilight(year, month, day, lon, lat, &naut_start, &naut_end);
 	astr = astronomical_twilight(year, month, day, lon, lat, &astr_start, &astr_end);
 
-	printf("Sun at south %s UTC\n", ut2str((rise + set) / 2.0));
+	PRINTF("Sun at south %s UTC\n", ut2str((rise + set) / 2.0));
 
 	switch (rs) {
 	case 0:
@@ -94,11 +97,11 @@ static int all(double lat, double lon, int year, int month, int day)
 		break;
 
 	case +1:
-		printf("Sun above horizon\n");
+		PRINTF("Sun above horizon\n");
 		break;
 
 	case -1:
-		printf("Sun below horizon\n");
+		PRINTF("Sun below horizon\n");
 		break;
 	}
 
@@ -109,11 +112,11 @@ static int all(double lat, double lon, int year, int month, int day)
 		break;
 
 	case +1:
-		printf("Never darker than civil twilight\n");
+		PRINTF("Never darker than civil twilight\n");
 		break;
 
 	case -1:
-		printf("Never as bright as civil twilight\n");
+		PRINTF("Never as bright as civil twilight\n");
 		break;
 	}
 
@@ -124,11 +127,11 @@ static int all(double lat, double lon, int year, int month, int day)
 		break;
 
 	case +1:
-		printf("Never darker than nautical twilight\n");
+		PRINTF("Never darker than nautical twilight\n");
 		break;
 
 	case -1:
-		printf("Never as bright as nautical twilight\n");
+		PRINTF("Never as bright as nautical twilight\n");
 		break;
 	}
 
@@ -139,11 +142,11 @@ static int all(double lat, double lon, int year, int month, int day)
 		break;
 
 	case +1:
-		printf("Never darker than astronomical twilight\n");
+		PRINTF("Never darker than astronomical twilight\n");
 		break;
 
 	case -1:
-		printf("Never as bright as astronomical twilight\n");
+		PRINTF("Never as bright as astronomical twilight\n");
 		break;
 	}
 
@@ -184,19 +187,26 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon, lat;
 
-	while ((c = getopt(argc, argv, "ahirs")) != EOF) {
+	while ((c = getopt(argc, argv, "ahirsv")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
 
 		case 'i':
+			verbose++;
 			interactive(&lat, &lon, &year, &month, &day);
 			break;
 
 		case 'a':
+			verbose++;
+			/* fallthrough */
 		case 'r':
 		case 's':
 			op = c;
+			break;
+
+		case 'v':
+			verbose++;
 			break;
 
 		case ':':	/* missing param for option */
@@ -219,7 +229,7 @@ int main(int argc, char *argv[])
 		month = 1 + tm->tm_mon;
 		day = tm->tm_mday;
 
-//		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
+//		PRINTF("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
 		ok = 1;
 	}
@@ -238,6 +248,7 @@ int main(int argc, char *argv[])
 		return sunset(lat, lon, year, month, day);
 
 	default:
+		verbose++;
 		break;
 	}
 
