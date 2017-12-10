@@ -42,3 +42,31 @@ my home automation system so it can control the indoor lights, which
 are operated using 433 MHz outlet switches.
 
 [Paul Schlyter]: http://stjarnhimlen.se/
+
+
+Building
+--------
+
+The `sun` is built with the GNU configure and build system.  Simply run
+the following commands to build and install:
+
+```
+./configure
+make
+sudo make install
+```
+
+The `sunriset.c` code can be built as a library, use `--enable-library`
+with the configure script to enable this optional feature.
+
+If you built from GIT, or have modified any of the `.ac` or `.am` files,
+you have to run the following to (re-)create the configure script:
+
+```
+./autogen.sh
+```
+
+For that to work you need to have `autoconf`, `automake`, and `libtool`
+installed.  These tools are not needed when building from an official
+released tarball.
+
