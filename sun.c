@@ -154,7 +154,7 @@ static int all(double lat, double lon, int year, int month, int day)
 	return 0;
 }
 
-static void interactive(double *lat, double *lon, int *year, int *month, int *day)
+static int interactive(double *lat, double *lon, int *year, int *month, int *day)
 {
 	char buf[80];
 
@@ -165,6 +165,8 @@ static void interactive(double *lat, double *lon, int *year, int *month, int *da
 	printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
 	fgets(buf, 80, stdin);
 	sscanf(buf, "%d %d %d", year, month, day);
+
+	return 1;
 }
 
 static int usage(int code)
@@ -195,7 +197,7 @@ int main(int argc, char *argv[])
 
 		case 'i':
 			verbose++;
-			interactive(&lat, &lon, &year, &month, &day);
+			ok = interactive(&lat, &lon, &year, &month, &day);
 			break;
 
 		case 'a':
