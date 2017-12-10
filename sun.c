@@ -1,8 +1,34 @@
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
 #include "sunriset.h"
+
+static char *ut2str(double ut)
+{
+	int h, m;
+	static char buf[10];
+
+	h = (int)floor(ut);
+	m = (int)(60 * (ut - floor(ut)));
+
+	snprintf(buf, sizeof(buf), "%02d:%02d", h, m);
+
+	return buf;
+}
+
+static void print(const char *fmt, double up, double dn)
+{
+	int uh, um, dh, dm;
+
+	uh = (int)floor(up);
+	um = (int)(60 * (up - floor(up)));
+	dh = (int)floor(dn);
+	dm = (int)(60 * (dn - floor(dn)));
+
+	printf(fmt, uh, um, dh, dm);
+}
 
 int main(int argc, char *argv[])
 {
@@ -38,7 +64,6 @@ int main(int argc, char *argv[])
 		printf("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
 	}
-	printf("Times are in UT, approximately == UTC\n");
 
 	daylen = day_length(year, month, day, lon, lat);
 	civlen = day_civil_twilight_length(year, month, day, lon, lat);
@@ -58,11 +83,11 @@ int main(int argc, char *argv[])
 	naut = nautical_twilight(year, month, day, lon, lat, &naut_start, &naut_end);
 	astr = astronomical_twilight(year, month, day, lon, lat, &astr_start, &astr_end);
 
-	printf("Sun at south %5.2fh UT\n", (rise + set) / 2.0);
+	printf("Sun at south %s UTC\n", ut2str((rise + set) / 2.0));
 
 	switch (rs) {
 	case 0:
-		printf("Sun rises %5.2fh UT, sets %5.2fh UT\n", rise, set);
+		print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
 		break;
 
 	case +1:
@@ -76,7 +101,8 @@ int main(int argc, char *argv[])
 
 	switch (civ) {
 	case 0:
-		printf("Civil twilight starts %5.2fh, " "ends %5.2fh UT\n", civ_start, civ_end);
+		print("Civil twilight starts %02d:%02d, ends %02d:%02d UTC\n",
+		      civ_start, civ_end);
 		break;
 
 	case +1:
@@ -90,7 +116,8 @@ int main(int argc, char *argv[])
 
 	switch (naut) {
 	case 0:
-		printf("Nautical twilight starts %5.2fh, " "ends %5.2fh UT\n", naut_start, naut_end);
+		print("Nautical twilight starts %02d:%02d, ends %02d:%02d UTC\n",
+		      naut_start, naut_end);
 		break;
 
 	case +1:
@@ -104,7 +131,8 @@ int main(int argc, char *argv[])
 
 	switch (astr) {
 	case 0:
-		printf("Astronomical twilight starts %5.2fh, " "ends %5.2fh UT\n", astr_start, astr_end);
+		print("Astronomical twilight starts %02d:%02d, ends %02d:%02d UTC\n",
+		      astr_start, astr_end);
 		break;
 
 	case +1:
