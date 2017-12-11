@@ -208,8 +208,8 @@ static int probe(double *lat, double *lon)
 		if (!fp)
 			return 0;
 
-		fgets(tz, sizeof(tz), fp);
-		chomp(tz);
+		if (fgets(tz, sizeof(tz), fp))
+			chomp(tz);
 		fclose(fp);
 	} else {
 		strncpy(tz, ptr, sizeof(tz));
@@ -248,12 +248,12 @@ static int interactive(double *lat, double *lon, int *year, int *month, int *day
 	char buf[80];
 
 	printf("Latitude (+ is north) and longitude (+ is east) : ");
-	fgets(buf, sizeof(buf), stdin);
-	sscanf(buf, "%lf %lf", lat, lon);
+	if (fgets(buf, sizeof(buf), stdin))
+		sscanf(buf, "%lf %lf", lat, lon);
 
 	printf("Input date ( yyyy mm dd ) (ctrl-C exits): ");
-	fgets(buf, 80, stdin);
-	sscanf(buf, "%d %d %d", year, month, day);
+	if (fgets(buf, 80, stdin))
+		sscanf(buf, "%d %d %d", year, month, day);
 
 	return 1;
 }
