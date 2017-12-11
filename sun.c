@@ -11,7 +11,7 @@
 #define TIMEZONE "/etc/timezone"
 #define ZONETAB  "/usr/share/zoneinfo/zone.tab"
 
-#define PRINTF(fmt, args...) if (verbose) printf(fmt, ##args)
+#define PRINTF(fmt, args...) if (verbose > 0) printf(fmt, ##args)
 
 static time_t now;
 static struct tm *tm;
