@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 	}
 
 	now = time(NULL);
-	tm = localtime(&now);
+	tm = gmtime(&now);
 
 	if (!ok) {
 		if (optind < argc)
