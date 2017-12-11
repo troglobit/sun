@@ -276,7 +276,7 @@ static int usage(int code)
 
 int main(int argc, char *argv[])
 {
-	int c, op, ok = 0;
+	int c, op = 0, ok = 0;
 	int year, month, day;
 	double lon = 0.0, lat;
 
