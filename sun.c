@@ -52,6 +52,7 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 	double rise, set;
 
 	sun_rise_set(year, month, day, lon, lat, &rise, &set);
+//	civil_twilight(year, month, day, lon, lat, &rise, &set);
 	if (mode)
 		PRINTF("Sun rises %s", ut2str(rise));
 	if (!mode)
@@ -62,14 +63,14 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 //	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
 
 	if (do_wait > 0) {
-		int h, m;
+		int h, m, s;
 		time_t then, sec;
 
 		if (mode)
 			convert(rise, &h, &m);
 		else
 			convert(set, &h, &m);
-
+#if 0
 		tm->tm_hour = h;
 		tm->tm_min  = m;
 		then = mktime(tm);
@@ -78,7 +79,20 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 			then += 60 * 60 * 24;
 
 		sec = then - now;
-		PRINTF("Sleeping %ld sec ...\n", sec);
+#else
+		h = h - tm->tm_hour;
+		if (h < 0)
+			h += 24;
+		m = m - tm->tm_min;
+		if (m < 0)
+			m += 60;
+		then = now + 3600 * h + 60 * m;
+		sec = then - now;
+#endif
+		h = sec / 60 / 60;
+		m = sec / 60 - h * 60;
+		s = sec - m * 60 - h * 60 * 60;
+		PRINTF("Sleeping %dh%dm%ds ...\n", h, m, s);
 		sleep(sec);
 	}
 
