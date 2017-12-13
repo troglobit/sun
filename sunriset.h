@@ -1,3 +1,18 @@
+/*
+
+SUNRISET.H - computes Sun rise/set times, start/end of twilight, and
+             the length of the day at any date and latitude
+
+Written as DAYLEN.C, 1989-08-16
+
+Modified to SUNRISET.C, 1992-12-01
+Split to a header file, 2017-12-10, by Joachim Nilsson
+
+(c) Paul Schlyter, 1989, 1992
+
+Released to the public domain by Paul Schlyter, December 1992
+
+*/
 
 /* A macro to compute the number of days elapsed since 2000 Jan 0.0 */
 /* (which is equal to 1999 Dec 31, 0h UT)                           */

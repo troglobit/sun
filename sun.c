@@ -1,3 +1,12 @@
+/*
+
+Simple SUNRISET front-end application
+
+(c) Joachim Nilsson, 2017
+
+Released to the public domain by Joachim Nilsson, December 2017
+
+ */
 #include <getopt.h>
 #include <math.h>
 #include <stdio.h>

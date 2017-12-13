@@ -9,6 +9,7 @@ SUNRISET.C - computes Sun rise/set times, start/end of twilight, and
 Written as DAYLEN.C, 1989-08-16
 
 Modified to SUNRISET.C, 1992-12-01
+Split to a header file, 2017-12-10, by Joachim Nilsson
 
 (c) Paul Schlyter, 1989, 1992
 
