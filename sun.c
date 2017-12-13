@@ -52,7 +52,7 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 	double rise, set;
 
 	sun_rise_set(year, month, day, lon, lat, &rise, &set);
-//	civil_twilight(year, month, day, lon, lat, &rise, &set);
+
 	if (mode)
 		PRINTF("Sun rises %s", ut2str(rise));
 	if (!mode)
@@ -70,16 +70,8 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 			convert(rise, &h, &m);
 		else
 			convert(set, &h, &m);
-#if 0
-		tm->tm_hour = h;
-		tm->tm_min  = m;
-		then = mktime(tm);
 
-		if (then < now)
-			then += 60 * 60 * 24;
-
-		sec = then - now;
-#else
+		/* Adjust for sunset/sunrise regardless of timezone */
 		h = h - tm->tm_hour;
 		if (h < 0)
 			h += 24;
@@ -88,7 +80,8 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 			m += 60;
 		then = now + 3600 * h + 60 * m;
 		sec = then - now;
-#endif
+
+		/* Pretty printing */
 		h = sec / 60 / 60;
 		m = sec / 60 - h * 60;
 		s = sec - m * 60 - h * 60 * 60;
