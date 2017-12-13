@@ -2,7 +2,8 @@ About
 -----
 
 Simple public domain library and application that shows sunset and
-sunrise based on your latitude,longitude.
+sunrise based on your latitude,longitude.  The application can also
+be used with cron to run a script, see section Goal below.
 
 The library, which can be used entirely stand-alone, is based on the
 excellent code by [Paul Schlyter][].
@@ -31,7 +32,8 @@ $ TZ="Africa/Luanda" sun
 Sun rises 04:42, sets 17:18 UTC
 ```
 
-See the built-in usage text for more help: `sun -h`
+For more precision, you can of course provide your exact latitude and
+longitude.  See the built-in usage text for more help: `sun -h`
 
 
 Goal
