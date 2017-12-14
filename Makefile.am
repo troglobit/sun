@@ -38,9 +38,9 @@ md5-dist:
 
 ## Check if tagged in git
 release-hook:
-	if [ ! `git tag | grep $(PACKAGE_VERSION)` ]; then				\
+	if [ ! `git tag | grep v$(PACKAGE_VERSION)` ]; then				\
 		echo;									\
-		printf "\e[1m\e[41mCannot find release tag $(PACKAGE_VERSION)\e[0m\n";	\
+		printf "\e[1m\e[41mCannot find release tag v$(PACKAGE_VERSION)\e[0m\n";	\
 		printf "\e[1m\e[5mDo release anyway?\e[0m "; read yorn;			\
 		if [ "$$yorn" != "y" -a "$$yorn" != "Y" ]; then				\
 			printf "OK, aborting release.\n";				\
