@@ -36,6 +36,19 @@ For more precision, you can of course provide your exact latitude and
 longitude.  See the built-in usage text for more help: `sun -h`
 
 
+Cron
+----
+
+To launch applications at sunrise/sunset using cron, simply:
+
+```
+$ crontab -e
+01 00 * * * sun -r -w; play english.au
+```
+
+This plays Linus Torvalds' classic audio file at sunrise.
+
+
 Goal
 ----
 
