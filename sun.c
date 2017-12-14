@@ -288,6 +288,7 @@ static int usage(int code)
 	       "  -i  Interactive mode\n"
 	       "  -r  Sunrise mode\n"
 	       "  -s  Sunset mode\n"
+	       "  -v  Show program version and exit\n"
 	       "  -w  Wait until sunset or sunrise\n"
 	       "\n"
 	       "Bug report address: %s\n",
@@ -302,7 +303,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon = 0.0, lat;
 
-	while ((c = getopt(argc, argv, "ahilrsw")) != EOF) {
+	while ((c = getopt(argc, argv, "ahilrsvw")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -324,6 +325,10 @@ int main(int argc, char *argv[])
 		case 's':
 			op = c;
 			break;
+
+		case 'v':
+			puts(PACKAGE_VERSION);
+			return 0;
 
 		case 'w':
 			verbose--;
