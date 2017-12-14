@@ -7,6 +7,8 @@ Simple SUNRISET front-end application
 Released to the public domain by Joachim Nilsson, December 2017
 
  */
+#include "config.h"
+
 #include <getopt.h>
 #include <math.h>
 #include <stdio.h>
@@ -285,7 +287,9 @@ static int usage(int code)
 	       "  -r  Sunrise mode\n"
 	       "  -s  Sunset mode\n"
 	       "  -w  Wait until sunset or sunrise\n"
-	       "\n", __progname);
+	       "\n"
+	       "Bug report address: %s\n",
+	       __progname, PACKAGE_BUGREPORT);
 
 	return code;
 }
