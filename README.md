@@ -56,8 +56,6 @@ The goal of this project is to provide just enough intelligence to
 my home automation system so it can control the indoor lights, which
 are operated using 433 MHz outlet switches.
 
-[Paul Schlyter]: http://stjarnhimlen.se/
-
 
 Building
 --------
@@ -85,3 +83,6 @@ For that to work you need to have `autoconf`, `automake`, and `libtool`
 installed.  These tools are not needed when building from an official
 released tarball.
 
+
+
+[Paul Schlyter]: http://stjarnhimlen.se/
