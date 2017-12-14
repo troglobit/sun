@@ -18,7 +18,7 @@ latitude and longitude.
 
 On my system, in mid December here in Sweden, the result is:
 
-```
+```sh
 $ cat /etc/timezone
 Europe/Stockholm
 $ sun
@@ -27,7 +27,7 @@ Sun rises 07:31, sets 13:49 UTC
 
 You can set the environment variable `TZ` to check other locations:
 
-```
+```sh
 $ TZ="Africa/Luanda" sun
 Sun rises 04:42, sets 17:18 UTC
 ```
@@ -41,7 +41,7 @@ Cron
 
 To launch applications at sunrise/sunset using cron, simply:
 
-```
+```sh
 $ crontab -e
 01 00 * * * sun -r -w; play english.au
 ```
@@ -65,10 +65,10 @@ Building
 The `sun` is built with the GNU configure and build system.  Simply run
 the following commands to build and install:
 
-```
-./configure
-make
-sudo make install
+```sh
+$ ./configure
+$ make
+$ sudo make install
 ```
 
 The `sunriset.c` code can be built as a library, use `--enable-library`
@@ -77,8 +77,8 @@ with the configure script to enable this optional feature.
 If you built from GIT, or have modified any of the `.ac` or `.am` files,
 you have to run the following to (re-)create the configure script:
 
-```
-./autogen.sh
+```sh
+.$ /autogen.sh
 ```
 
 For that to work you need to have `autoconf`, `automake`, and `libtool`
