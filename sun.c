@@ -278,7 +278,8 @@ static int interactive(double *lat, double *lon, int *year, int *month, int *day
 
 static int usage(int code)
 {
-	printf("Usage: %s [-hip] [+/-latitude +/-longitude]\n"
+	printf("Usage:\n"
+	       "  %s [-ahirsw] [+/-latitude +/-longitude]\n"
 	       "\n"
 	       "Options:\n"
 	       "  -a  Show all relevant times and exit\n"
