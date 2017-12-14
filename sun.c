@@ -283,6 +283,7 @@ static int usage(int code)
 	       "\n"
 	       "Options:\n"
 	       "  -a  Show all relevant times and exit\n"
+	       "  -l  Increased verbosity, enable log messages\n"
 	       "  -h  This help text\n"
 	       "  -i  Interactive mode\n"
 	       "  -r  Sunrise mode\n"
@@ -301,7 +302,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon = 0.0, lat;
 
-	while ((c = getopt(argc, argv, "ahirsvw")) != EOF) {
+	while ((c = getopt(argc, argv, "ahilrsw")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -311,6 +312,10 @@ int main(int argc, char *argv[])
 			ok = interactive(&lat, &lon, &year, &month, &day);
 			break;
 
+		case 'l':
+			verbose++;
+			break;
+
 		case 'a':
 			verbose++;
 			do_wait--;
@@ -318,10 +323,6 @@ int main(int argc, char *argv[])
 		case 'r':
 		case 's':
 			op = c;
-			break;
-
-		case 'v':
-			verbose++;
 			break;
 
 		case 'w':
