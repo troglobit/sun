@@ -1,4 +1,4 @@
-AC_INIT(sun, 1.0, https://github.com/troglobit/sun/issues)
+AC_INIT(sun, 1.1, https://github.com/troglobit/sun/issues)
 AM_INIT_AUTOMAKE([1.11 foreign])
 
 AC_CONFIG_SRCDIR([sunriset.c])
