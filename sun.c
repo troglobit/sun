@@ -27,6 +27,7 @@ Released to the public domain by Joachim Nilsson, December 2017
 static time_t now;
 static struct tm *tm;
 
+static int  utc = 0;
 static int  verbose = 1;
 static int  do_wait = 0;
 extern char *__progname;
@@ -312,6 +313,7 @@ static int usage(int code)
 	       "  -i  Interactive mode\n"
 	       "  -r  Sunrise mode\n"
 	       "  -s  Sunset mode\n"
+	       "  -u  Use UTC everywhere, not local time\n"
 	       "  -v  Show program version and exit\n"
 	       "  -w  Wait until sunset or sunrise\n"
 	       "\n"
@@ -327,7 +329,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon = 0.0, lat;
 
-	while ((c = getopt(argc, argv, "ahilrsvw")) != EOF) {
+	while ((c = getopt(argc, argv, "ahilrsuvw")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -350,6 +352,10 @@ int main(int argc, char *argv[])
 			op = c;
 			break;
 
+		case 'u':
+			utc = 1;
+			break;
+
 		case 'v':
 			puts(PACKAGE_VERSION);
 			return 0;
@@ -367,8 +373,10 @@ int main(int argc, char *argv[])
 	}
 
 	now = time(NULL);
-//	tm = gmtime(&now);
-	tm = localtime(&now);
+	if (utc)
+		tm = gmtime(&now);
+	else
+		tm = localtime(&now);
 
 	if (!ok) {
 		if (optind < argc)
