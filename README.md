@@ -13,8 +13,8 @@ Example
 -------
 
 Without any arguments the `sun` goes dumpster diving in system files
-`/etc/timezone` and `/usr/share/zoneinfo/zone.tab` to figure out your
-latitude and longitude.
+`/etc/timezone` and `/usr/share/zoneinfo/zone.tab` to figure out
+your latitude and longitude.
 
 On my system, in mid December here in Sweden, the result is:
 
