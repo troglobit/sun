@@ -31,47 +31,65 @@ static int  verbose = 1;
 static int  do_wait = 0;
 extern char *__progname;
 
+static time_t timediff(void)
+{
+	static int done = 0;
+	static time_t diff;
+
+	if (done)
+		return diff;
+
+//	tzset();
+//	diff = -timezone;
+	diff = tm->tm_gmtoff;
+	done = 1;
+
+	return diff;
+}
+
+
 static void convert(double ut, int *h, int *m)
 {
 	*h = (int)floor(ut);
 	*m = (int)(60 * (ut - floor(ut)));
+
+	*h += timediff() / 3600;
 }
 
-static char *ut2str(double ut)
+
+static char *lctime_r(double ut, char *buf, size_t len)
 {
 	int h, m;
-	static char buf[10];
 
 	convert(ut, &h, &m);
-	snprintf(buf, sizeof(buf), "%02d:%02d", h, m);
+	snprintf(buf, len, "%02d:%02d", h, m);
 
 	return buf;
 }
 
-static void print(const char *fmt, double up, double dn)
+static char *lctime(double ut)
 {
-	int uh, um, dh, dm;
+	static char buf[10];
 
-	convert(up, &uh, &um);
-	convert(dn, &dh, &dm);
-
-	PRINTF(fmt, uh, um, dh, dm);
+	return lctime_r(ut, buf, sizeof(buf));
 }
 
 static int riset(int mode, double lat, double lon, int year, int month, int day)
 {
 	double rise, set;
+//	char bufr[10], bufs[10];
 
 	sun_rise_set(year, month, day, lon, lat, &rise, &set);
 
 	if (mode)
-		PRINTF("Sun rises %s", ut2str(rise));
+		PRINTF("Sun rises %s", lctime(rise));
 	if (!mode)
-		PRINTF("Sun sets %s", ut2str(set));
+		PRINTF("Sun sets %s", lctime(set));
 	if (mode == -1)
-		PRINTF(", sets %s", ut2str(set));
-	PRINTF(" UTC\n");
-//	print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
+		PRINTF(", sets %s", lctime(set));
+	PRINTF(" %s\n", tm->tm_zone);
+//	printf("Sun rises %s, sets %s %s\n", lctime_r(rise, bufr, sizeof(bufr)),
+//	       lctime_r(set, bufs, sizeof(bufs)), tm->tm_zone);
 
 	if (do_wait > 0) {
 		int h, m, s;
@@ -119,6 +137,7 @@ static int all(double lat, double lon, int year, int month, int day)
 	double rise, set, civ_start, civ_end, naut_start, naut_end;
 	double astr_start, astr_end;
 	int rs, civ, naut, astr;
+	char bufr[10], bufs[10];
 
 	daylen = day_length(year, month, day, lon, lat);
 	civlen = day_civil_twilight_length(year, month, day, lon, lat);
@@ -138,11 +157,13 @@ static int all(double lat, double lon, int year, int month, int day)
 	naut = nautical_twilight(year, month, day, lon, lat, &naut_start, &naut_end);
 	astr = astronomical_twilight(year, month, day, lon, lat, &astr_start, &astr_end);
 
-	PRINTF("Sun at south %s UTC\n", ut2str((rise + set) / 2.0));
+	PRINTF("Sun at south %s %s\n", lctime((rise + set) / 2.0), tm->tm_zone);
 
 	switch (rs) {
 	case 0:
-		print("Sun rises %02d:%02d, sets %02d:%02d UTC\n", rise, set);
+		printf("Sun rises %s, sets %s %s\n",
+		       lctime_r(rise, bufr, sizeof(bufr)),
+		       lctime_r(set, bufs, sizeof(bufs)), tm->tm_zone);
 		break;
 
 	case +1:
@@ -156,8 +177,9 @@ static int all(double lat, double lon, int year, int month, int day)
 
 	switch (civ) {
 	case 0:
-		print("Civil twilight starts %02d:%02d, ends %02d:%02d UTC\n",
-		      civ_start, civ_end);
+		printf("Civil twilight starts %s, ends %s %s\n",
+		       lctime_r(civ_start, bufr, sizeof(bufr)),
+		       lctime_r(civ_end, bufs, sizeof(bufs)), tm->tm_zone);
 		break;
 
 	case +1:
@@ -171,8 +193,9 @@ static int all(double lat, double lon, int year, int month, int day)
 
 	switch (naut) {
 	case 0:
-		print("Nautical twilight starts %02d:%02d, ends %02d:%02d UTC\n",
-		      naut_start, naut_end);
+		printf("Nautical twilight starts %s, ends %s %s\n",
+		       lctime_r(naut_start, bufr, sizeof(bufr)),
+		       lctime_r(naut_end, bufs, sizeof(bufs)), tm->tm_zone);
 		break;
 
 	case +1:
@@ -186,8 +209,9 @@ static int all(double lat, double lon, int year, int month, int day)
 
 	switch (astr) {
 	case 0:
-		print("Astronomical twilight starts %02d:%02d, ends %02d:%02d UTC\n",
-		      astr_start, astr_end);
+		printf("Astronomical twilight starts %s, ends %s %s\n",
+		       lctime_r(astr_start, bufr, sizeof(bufr)),
+		       lctime_r(astr_end, bufs, sizeof(bufs)), tm->tm_zone);
 		break;
 
 	case +1:
@@ -343,7 +367,8 @@ int main(int argc, char *argv[])
 	}
 
 	now = time(NULL);
-	tm = gmtime(&now);
+//	tm = gmtime(&now);
+	tm = localtime(&now);
 
 	if (!ok) {
 		if (optind < argc)

@@ -20,12 +20,13 @@ endif
 bin_PROGRAMS            = sun
 sun_SOURCES             = sun.c
 sun_CFLAGS              = -W -Wall -Wextra
+sun_CPPFLAGS            = -D_GNU_SOURCE
 sun_LDADD               = -lm
 if ENABLE_LIBRARY
 sun_LDFLAGS             = -static
 sun_LDADD              += libsunriset.la
 else
-sun_CPPFLAGS            = -DSUNRISET_LIB
+sun_CPPFLAGS           += -DSUNRISET_LIB
 sun_SOURCES            += sunriset.c sunriset.h
 endif
 
