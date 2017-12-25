@@ -17,11 +17,14 @@ Released to the public domain by Joachim Nilsson, December 2017
 #include <time.h>
 #include <unistd.h>
 
+#include "tzalias.h"
 #include "sunriset.h"
 
 #define TIMEZONE "/etc/timezone"
 #define ZONETAB  "/usr/share/zoneinfo/zone.tab"
 
+/* From The Practice of Programming, by Kernighan and Pike */
+#define NELEMS(array) (sizeof(array) / sizeof(array[0]))
 #define PRINTF(fmt, args...) if (verbose > 0) printf(fmt, ##args)
 
 static time_t now;
@@ -239,9 +242,24 @@ static void chomp(char *str)
 		str[len--] = 0;
 }
 
+static int alias(char *tz, size_t len)
+{
+	size_t i;
+
+	for (i = 0; i < NELEMS(tzalias); i++) {
+		if (strcmp(tzalias[i].name, tz))
+			continue;
+
+		strncpy(tz, tzalias[i].alias, len);
+		return 1;
+	}
+
+	return 0;
+}
+
 static int probe(double *lat, double *lon)
 {
-	int found = 0;
+	int found = 0, again = 0;
 	FILE *fp;
 	char *ptr, tz[42], buf[80];
 
@@ -258,8 +276,9 @@ static int probe(double *lat, double *lon)
 		strncpy(tz, ptr, sizeof(tz));
 		tz[sizeof(tz) - 1] = 0;
 	}
-//	printf("tz: '%s'\n", tz);
 
+retry:
+//	printf("tz: '%s'\n", tz);
 	fp = fopen(ZONETAB, "r");
 	if (!fp)
 		return 0;
@@ -282,6 +301,16 @@ static int probe(double *lat, double *lon)
 		break;
 	}
 	fclose(fp);
+
+	if (!found) {
+//		printf("Cannot find your coordinates using time zone: %s\n", tz);
+		if (!again) {
+			again++;
+			if (alias(tz, sizeof(tz)))
+				goto retry;
+		}
+//		puts("");
+	}
 
 	return found;
 }

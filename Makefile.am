@@ -1,5 +1,5 @@
 doc_DATA                = README.md LICENSE
-EXTRA_DIST              = $(doc_DATA)
+EXTRA_DIST              = $(doc_DATA) tzalias.sh
 
 if ENABLE_LIBRARY
 pkgconfigdir            = $(libdir)/pkgconfig
@@ -18,7 +18,7 @@ libsunriset_la_LDFLAGS  = $(AM_LDFLAGS) -version-info 0:0:0
 endif
 
 bin_PROGRAMS            = sun
-sun_SOURCES             = sun.c
+sun_SOURCES             = sun.c tzalias.h
 sun_CFLAGS              = -W -Wall -Wextra
 sun_CPPFLAGS            = -D_GNU_SOURCE
 sun_LDADD               = -lm
