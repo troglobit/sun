@@ -43,10 +43,10 @@ To launch applications at sunrise/sunset using cron, simply:
 
 ```sh
 $ crontab -e
-01 00 * * * sun -r -w; play english.au
+01 00 * * * sun -r -w -o -30m; play english.au
 ```
 
-This plays Linus Torvalds' classic audio file at sunrise.
+This plays Linus Torvalds' classic audio file 30 minutes before sunrise.
 
 
 Goal
