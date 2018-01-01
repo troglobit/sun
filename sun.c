@@ -29,7 +29,7 @@ Released to the public domain by Joachim Nilsson, December 2017
 
 static time_t now;
 static struct tm *tm;
-
+static time_t offset = 0;
 static int  utc = 0;
 static int  verbose = 1;
 static int  do_wait = 0;
@@ -51,6 +51,34 @@ static time_t timediff(void)
 	return diff;
 }
 
+/*
+ * Converts the optional `-w TIME` offset to a relative offset.
+ * Supports e.g.. 30m, -15m, 13s, 1h ... or just 3600
+ */
+static time_t convert_offset(char *arg)
+{
+	int mult = 1;
+	long long val = 0;
+
+	if (!arg)
+		return 0;
+
+	if (strpbrk(arg, "hH"))
+		mult = 3600;
+	if (strpbrk(arg, "mM"))
+		mult = 60;
+
+	sscanf(arg, "%lld", &val);
+	val *= mult;
+
+	/* MAX offset == +/- 6h, otherwise your location is wrong */
+	if (val < -6 * 3600)
+		val = -6 * 3600;
+	if (val >  6 * 3600)
+		val = 6 * 3600;
+
+	return val;
+}
 
 static void convert(double ut, int *h, int *m)
 {
@@ -59,7 +87,6 @@ static void convert(double ut, int *h, int *m)
 
 	*h += timediff() / 3600;
 }
-
 
 static char *lctime_r(double ut, char *buf, size_t len)
 {
@@ -112,7 +139,7 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 		if (m < 0)
 			m += 60;
 		then = now + 3600 * h + 60 * m;
-		sec = then - now;
+		sec = then - now + offset;
 
 		/* Pretty printing */
 		h = sec / 60 / 60;
@@ -333,18 +360,20 @@ static int interactive(double *lat, double *lon, int *year, int *month, int *day
 static int usage(int code)
 {
 	printf("Usage:\n"
-	       "  %s [-ahirsw] [+/-latitude +/-longitude]\n"
+	       "  %s [-ahirsw] [-o OFFSET] [+/-latitude +/-longitude]\n"
 	       "\n"
 	       "Options:\n"
-	       "  -a  Show all relevant times and exit\n"
-	       "  -l  Increased verbosity, enable log messages\n"
-	       "  -h  This help text\n"
-	       "  -i  Interactive mode\n"
-	       "  -r  Sunrise mode\n"
-	       "  -s  Sunset mode\n"
-	       "  -u  Use UTC everywhere, not local time\n"
-	       "  -v  Show program version and exit\n"
-	       "  -w  Wait until sunset or sunrise\n"
+	       "  -a      Show all relevant times and exit\n"
+	       "  -l      Increased verbosity, enable log messages\n"
+	       "  -h      This help text\n"
+	       "  -i      Interactive mode\n"
+	       "  -r      Sunrise mode\n"
+	       "  -s      Sunset mode\n"
+	       "  -u      Use UTC everywhere, not local time\n"
+	       "  -v      Show program version and exit\n"
+	       "  -w      Wait until sunset or sunrise\n"
+	       "  -o ARG  Time offset to adjust wait, e.g. -o -30m\n"
+	       "          maximum allowed offset: +/- 6h\n"
 	       "\n"
 	       "Bug report address: %s\n",
 	       __progname, PACKAGE_BUGREPORT);
@@ -358,7 +387,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon = 0.0, lat;
 
-	while ((c = getopt(argc, argv, "ahilrsuvw")) != EOF) {
+	while ((c = getopt(argc, argv, "ahilo:rsuvw")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -388,6 +417,10 @@ int main(int argc, char *argv[])
 		case 'v':
 			puts(PACKAGE_VERSION);
 			return 0;
+
+		case 'o':
+			offset = convert_offset(optarg);
+			break;
 
 		case 'w':
 			verbose--;
