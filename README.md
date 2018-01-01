@@ -48,6 +48,9 @@ $ crontab -e
 
 This plays Linus Torvalds' classic audio file 30 minutes before sunrise.
 
+**NOTE:** You may want to set the `$PATH` in your crontab, or use an
+  absolute path to your programs, otherwise cron will not find them.
+
 
 Goal
 ----
