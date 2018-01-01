@@ -52,6 +52,30 @@ This plays Linus Torvalds' classic audio file 30 minutes before sunrise.
   absolute path to your programs, otherwise cron will not find them.
 
 
+Usage
+-----
+
+```
+Usage:
+  sun [-ahirsw] [-o OFFSET] [+/-latitude +/-longitude]
+
+Options:
+  -a      Show all relevant times and exit
+  -l      Increased verbosity, enable log messages
+  -h      This help text
+  -i      Interactive mode
+  -r      Sunrise mode
+  -s      Sunset mode
+  -u      Use UTC everywhere, not local time
+  -v      Show program version and exit
+  -w      Wait until sunset or sunrise
+  -o ARG  Time offset to adjust wait, e.g. -o -30m
+          maximum allowed offset: +/- 6h
+
+Bug report address: https://github.com/troglobit/sun/issues
+```
+
+
 Goal
 ----
 
