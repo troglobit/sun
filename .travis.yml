@@ -11,3 +11,7 @@ script:
   - ./autogen.sh
   - ./configure --prefix=
   - make
+  - DESTDIR=/tmp make install
+  - ls -lR /tmp
+  - /tmp/bin/sun -h
+
