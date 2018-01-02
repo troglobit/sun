@@ -10,6 +10,11 @@ compiler:
   - gcc
   - clang
 
+addons:
+  apt:
+    packages:
+      - tree
+
 # We don't store generated files (configure and Makefile) in GIT,
 # so we must customize the default build script to run ./autogen.sh
 script:
@@ -17,6 +22,6 @@ script:
   - ./configure --prefix=
   - make
   - DESTDIR=/tmp make install
-  - ls -lR /tmp
+  - tree /tmp
   - /tmp/bin/sun -h
 
