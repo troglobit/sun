@@ -84,7 +84,8 @@ static void convert(double ut, int *h, int *m)
 {
 	*h = (int)floor(ut);
 	*m = (int)(60 * (ut - floor(ut)));
-
+ 
+	*m += (timediff() % 3600)/60;
 	*h += timediff() / 3600;
 }
 
