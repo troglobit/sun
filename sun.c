@@ -33,6 +33,7 @@ static time_t offset = 0;
 static int  utc = 0;
 static int  verbose = 1;
 static int  do_wait = 0;
+static int  show_seconds = 0;
 extern char *__progname;
 
 static time_t timediff(void)
@@ -80,21 +81,42 @@ static time_t convert_offset(char *arg)
 	return val;
 }
 
-static void convert(double ut, int *h, int *m)
+static void convert(double ut, int *h, int *m, int *s)
 {
+	int s_local;
+
+	/* Add the seconds offset first. */
+	ut += timediff() / 3600;
+
 	*h = (int)floor(ut);
-	*m = (int)(60 * (ut - floor(ut)));
- 
-	*m += (timediff() % 3600)/60;
-	*h += timediff() / 3600;
+	ut -= *h;
+
+	*m = (int)(ut * 60);
+	ut -= (double)*m / 60;
+
+	s_local = (int)(ut * 3600 + 0.5);
+
+	if (s == NULL) {
+		/* Round to the nearest minute. */
+		if (s_local >= 30)
+			++*m;
+	}
+	else
+		*s = s_local;
 }
 
 static char *lctime_r(double ut, char *buf, size_t len)
 {
-	int h, m;
+	int h, m, s;
 
-	convert(ut, &h, &m);
-	snprintf(buf, len, "%02d:%02d", h, m);
+	if (show_seconds) {
+		convert(ut, &h, &m, &s);
+		snprintf(buf, len, "%02d:%02d:%02d", h, m, s);
+	}
+	else {
+		convert(ut, &h, &m, NULL);
+		snprintf(buf, len, "%02d:%02d", h, m);
+	}
 
 	return buf;
 }
@@ -128,9 +150,9 @@ static int riset(int mode, double lat, double lon, int year, int month, int day)
 		time_t then, sec;
 
 		if (mode)
-			convert(rise, &h, &m);
+			convert(rise, &h, &m, NULL);
 		else
-			convert(set, &h, &m);
+			convert(set, &h, &m, NULL);
 
 		/* Adjust for sunset/sunrise regardless of timezone */
 		h = h - tm->tm_hour;
@@ -289,7 +311,7 @@ static int probe(double *lat, double *lon)
 {
 	int found = 0, again = 0;
 	FILE *fp;
-	char *ptr, tz[42], buf[80];
+	char *ptr, tz[43], buf[80];
 
 	ptr = getenv("TZ");
 	if (!ptr) {
@@ -334,7 +356,9 @@ retry:
 //		printf("Cannot find your coordinates using time zone: %s\n", tz);
 		if (!again) {
 			again++;
-			if (alias(tz, sizeof(tz)))
+			/* Use "sizeof - 1" to preserve the last byte */
+			/* for NUL and to avoid a compiler warning.   */
+			if (alias(tz, sizeof(tz) - 1))
 				goto retry;
 		}
 //		puts("");
@@ -361,20 +385,23 @@ static int interactive(double *lat, double *lon, int *year, int *month, int *day
 static int usage(int code)
 {
 	printf("Usage:\n"
-	       "  %s [-ahirsw] [-o OFFSET] [+/-latitude +/-longitude]\n"
+	       "  %s [-ahilrsuvw] [-d YYYY-MM-DD] [-o OFFSET] [-x FLAG] [-- +/-latitude +/-longitude]\n"
 	       "\n"
 	       "Options:\n"
 	       "  -a      Show all relevant times and exit\n"
-	       "  -l      Increased verbosity, enable log messages\n"
 	       "  -h      This help text\n"
 	       "  -i      Interactive mode\n"
+	       "  -l      Increased verbosity, enable log messages\n"
 	       "  -r      Sunrise mode\n"
 	       "  -s      Sunset mode\n"
 	       "  -u      Use UTC everywhere, not local time\n"
 	       "  -v      Show program version and exit\n"
 	       "  -w      Wait until sunset or sunrise\n"
+	       "  -d ARG  Specific date, in \"yyyy-mm-dd\" format.\n"
 	       "  -o ARG  Time offset to adjust wait, e.g. -o -30m\n"
 	       "          maximum allowed offset: +/- 6h\n"
+	       "  -x ARG  Extra options:\n"
+	       "          -x secs  Show times with seconds.\n"
 	       "\n"
 	       "Bug report address: %s\n",
 	       __progname, PACKAGE_BUGREPORT);
@@ -387,8 +414,9 @@ int main(int argc, char *argv[])
 	int c, op = 0, ok = 0;
 	int year, month, day;
 	double lon = 0.0, lat;
+	int spec_ymd = 0;
 
-	while ((c = getopt(argc, argv, "ahilo:rsuvw")) != EOF) {
+	while ((c = getopt(argc, argv, "ad:hilo:rsuvwx:")) != EOF) {
 		switch (c) {
 		case 'h':
 			return usage(0);
@@ -419,6 +447,15 @@ int main(int argc, char *argv[])
 			puts(PACKAGE_VERSION);
 			return 0;
 
+		case 'd':
+			if (sscanf(optarg, "%d-%d-%d", &year, &month, &day) == 3)
+			   spec_ymd = 1;
+			else {
+			   fprintf(stderr, "invalid date specification\n");
+			   return usage(1);
+			}
+			break;
+
 		case 'o':
 			offset = convert_offset(optarg);
 			break;
@@ -426,6 +463,21 @@ int main(int argc, char *argv[])
 		case 'w':
 			verbose--;
 			do_wait++;
+			break;
+
+		case 'x':
+			/*
+			 * This option was created to allow new options for which other
+			 * letters were already taken.  For example, "-s" would have been
+			 * good for "show times with seconds", but "-s" was already taken.
+			 */
+			if (strcmp(optarg, "secs") == 0)
+				show_seconds = 1;
+			/* Add new "strcmp()"s as needed. */
+			else {
+			   fprintf(stderr, "unsupported flag '%s'\n", optarg);
+			   return usage(1);
+			}
 			break;
 
 		case ':':	/* missing param for option */
@@ -447,9 +499,11 @@ int main(int argc, char *argv[])
 		if (optind < argc)
 			lon = atof(argv[optind]);
 
-		year = 1900 + tm->tm_year;
-		month = 1 + tm->tm_mon;
-		day = tm->tm_mday;
+		if (!spec_ymd) {
+			year = 1900 + tm->tm_year;
+			month = 1 + tm->tm_mon;
+			day = tm->tm_mday;
+		}
 
 //		PRINTF("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
