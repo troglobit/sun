@@ -57,20 +57,23 @@ Usage
 
 ```
 Usage:
-  sun [-ahirsw] [-o OFFSET] [+/-latitude +/-longitude]
+  sun [-ahilrsuvw] [-d YYYY-MM-DD] [-o OFFSET] [-x FLAG] [-- +/-latitude +/-longitude]
 
 Options:
   -a      Show all relevant times and exit
-  -l      Increased verbosity, enable log messages
   -h      This help text
   -i      Interactive mode
+  -l      Increased verbosity, enable log messages
   -r      Sunrise mode
   -s      Sunset mode
   -u      Use UTC everywhere, not local time
   -v      Show program version and exit
   -w      Wait until sunset or sunrise
+  -d ARG  Specific date, in "yyyy-mm-dd" format.
   -o ARG  Time offset to adjust wait, e.g. -o -30m
           maximum allowed offset: +/- 6h
+  -x ARG  Extra options:
+          -x secs  Show times with seconds.
 
 Bug report address: https://github.com/troglobit/sun/issues
 ```
