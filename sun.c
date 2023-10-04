@@ -27,14 +27,15 @@ Released to the public domain by Joachim Nilsson, December 2017
 #define NELEMS(array) (sizeof(array) / sizeof(array[0]))
 #define PRINTF(fmt, args...) if (verbose > 0) printf(fmt, ##args)
 
-static time_t now;
+static time_t     now;
 static struct tm *tm;
-static time_t offset = 0;
-static int  utc = 0;
-static int  verbose = 1;
-static int  do_wait = 0;
-static int  show_seconds = 0;
-extern char *__progname;
+static struct tm  tm_specific;
+static time_t     offset = 0;
+static int        utc = 0;
+static int        verbose = 1;
+static int        do_wait = 0;
+static int        show_seconds = 0;
+extern char      *__progname;
 
 static time_t timediff(void)
 {
@@ -415,6 +416,7 @@ int main(int argc, char *argv[])
 	int year, month, day;
 	double lon = 0.0, lat;
 	int spec_ymd = 0;
+	int spec_year, spec_mon, spec_mday;
 
 	while ((c = getopt(argc, argv, "ad:hilo:rsuvwx:")) != EOF) {
 		switch (c) {
@@ -451,7 +453,7 @@ int main(int argc, char *argv[])
 			if (sscanf(optarg, "%d-%d-%d", &year, &month, &day) == 3)
 			   spec_ymd = 1;
 			else {
-			   fprintf(stderr, "invalid date specification\n");
+			   fprintf(stderr, "error: invalid date specification\n");
 			   return usage(1);
 			}
 			break;
@@ -475,7 +477,7 @@ int main(int argc, char *argv[])
 				show_seconds = 1;
 			/* Add new "strcmp()"s as needed. */
 			else {
-			   fprintf(stderr, "unsupported flag '%s'\n", optarg);
+			   fprintf(stderr, "error: unsupported flag '%s'\n", optarg);
 			   return usage(1);
 			}
 			break;
@@ -487,7 +489,41 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	now = time(NULL);
+	if (spec_ymd) {
+		/*
+		 * Create Epoch Time for the specified date.  "3:00
+		 * a.m." is used to account for ST/DST changes,
+		 * which usually take effect by that time of day.
+		 */
+		spec_mday = day;
+		spec_mon  = month - 1;
+		spec_year = year - 1900;
+
+		tm_specific.tm_sec    = 0;
+		tm_specific.tm_min    = 0;
+		tm_specific.tm_hour   = 3;
+		tm_specific.tm_mday   = spec_mday;
+		tm_specific.tm_mon    = spec_mon;
+		tm_specific.tm_year   = spec_year;
+		tm_specific.tm_gmtoff = 0;
+
+		now = mktime(&tm_specific);
+
+		/*
+		 * If the returned day of month, month, or year
+		 * changed, the specified date wasn't valid.
+		 */
+		if ( (tm_specific.tm_mday != spec_mday) ||
+		     (tm_specific.tm_mon  != spec_mon)  ||
+		     (tm_specific.tm_year != spec_year) ) {
+			fprintf(stderr, "error: '%4d-%02d-%02d' is not a valid date\n",
+					  year, month, day);
+			return 1;
+		}
+	} else {
+		now = time(NULL);
+	}
+
 	if (utc)
 		tm = gmtime(&now);
 	else
@@ -499,11 +535,9 @@ int main(int argc, char *argv[])
 		if (optind < argc)
 			lon = atof(argv[optind]);
 
-		if (!spec_ymd) {
-			year = 1900 + tm->tm_year;
-			month = 1 + tm->tm_mon;
-			day = tm->tm_mday;
-		}
+		year = 1900 + tm->tm_year;
+		month = 1 + tm->tm_mon;
+		day = tm->tm_mday;
 
 //		PRINTF("latitude %f longitude %f date %d-%02d-%02d %d:%d (%s)\n",
 //		       lat, lon, year, month, day, tm->tm_hour, tm->tm_min, tm->tm_zone);
