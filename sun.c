@@ -99,8 +99,14 @@ static void convert(double ut, int *h, int *m, int *s)
 
 	if (s == NULL) {
 		/* Round to the nearest minute. */
-		if (s_local >= 30)
+		if (s_local >= 30) {
 			++*m;
+			if (*m == 60) {
+				++*h;
+				*m = 0;
+				/* Not sure how to handle *h == 24. */
+			}
+		}
 	}
 	else
 		*s = s_local;
