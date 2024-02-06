@@ -97,6 +97,17 @@ static void convert(double ut, int *h, int *m, int *s)
 
 	s_local = (int)(ut * 3600 + 0.5);
 
+	/* Bump the minute, and maybe the hour, if seconds is 60. */
+	if (s_local == 60) {
+		s_local = 0;
+		++*m;
+		if (*m == 60) {
+			++*h;
+			*m = 0;
+			/* Not sure how to handle *h == 24. */
+		}
+	}
+
 	if (s == NULL) {
 		/* Round to the nearest minute. */
 		if (s_local >= 30) {
